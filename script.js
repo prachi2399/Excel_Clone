@@ -406,3 +406,75 @@ $(".icon-paste").click(function() {
     }
     loadSheet();
 })
+
+function calcSelfValue(ele) {
+    console.log(ele);
+    let calRowId, calColId;
+
+    for (let i = 0; i < ele.length; i++){
+        if (!isNaN(ele.charAt(i))) {
+            let leftString = ele.substring(0, i);
+            let rightString = ele.substring(i);
+            calColId = calcColId(leftString);
+            calRowId = parseInt(rightString);
+            break;
+        }
+    }
+    return [calRowId, calColId];
+}
+
+function checkForSelf(rowId, colId, ele) {
+    let [calRowId, calColId] = calcSelfValue(ele);
+    if (calRowId == rowId && calColId == colId) {
+        return true;
+    }
+    
+    return false;
+}
+
+function calcColId(str) {
+    let place = str.length - 1;
+    let total = 0;
+    for (let i = 0; i < str.length; i++) {
+        let charValue = str.charCodeAt(i) - 64;
+        total += Math.pow(26, place) * charValue;
+        place--;
+    }
+    return total;
+}
+
+function evalFormula(cell) { debugger
+    let [rowId, colId] = calcSelfValue(cell);
+    let formula = cellData[selectedSheet][rowId - 1][colId - 1].formula;
+    // console.log(formula);
+    if (formula != ""){
+        let upStream = cellData[selectedSheet][rowId - 1][colId - 1].upStream;
+        let upStreamValue = [];
+        for (let i in upStream) {
+            let [calRowId, calColId] = calcSelfValue(upStream[i]);
+            let value;
+            if (cellData[selectedSheet][calRowId - 1][calColId - 1].text == "") {
+                value = "0";
+            }
+            else {
+                value = cellData[selectedSheet][calRowId - 1][calColId - 1].text;
+            }
+            upStreamValue.push(value);
+            console.log(upStreamValue);
+            formula = formula.replace(upStream[i], upStreamValue[i]);
+        }
+
+
+        cellData[selectedSheet][rowId - 1][colId - 1].text = eval(formula);
+        loadSheet();
+    }
+
+    let downStream = cellData[selectedSheet][rowId - 1][colId - 1].downStream;
+    for (let i = downStream.length - 1; i >= 0; i--){
+        evalFormula(downStream[i]);
+    }
+}
+
+
+
+
