@@ -1,2 +1,2 @@
-# Excel_Clone
+# Sheetify
 A cross Platform spreadsheet  
